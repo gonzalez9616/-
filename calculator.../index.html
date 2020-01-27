@@ -1,0 +1,79 @@
+<!DOCTYPE html> <html lang="en"> <head>
+<meta charset="UTF-8">
+<title>Calculator +</title>
+<link rel="stylesheet" type="text/css" href="styleSheet.css"> <script src="javascript.js"></script>
+</head>
+<body>
+<h1 id="logo">Calculator +</h1> <br>
+<div id ="d1">
+<br>
+<label id = "output">0</label> <br>
+<label id = "output2">-</label>
+<br> <br>
+<input class="B3" type = "button" onclick = "doSpecial('sin')" value = "Sin">
+<input class="B3" type = "button" onclick = "deletee(true)" value = "AC">
+<input class="B3" type = "button" onclick = "setPrev()" value = "Pre">
+<input class="B3" type = "button" onclick = "doSpecial('Answer')" value = "Ans">
+<input class="B3" type = "button" onclick = "deletee()" value = "Del">
+<br>
+<input class="B3" type = "button" onclick = "doSpecial('cos')"
+value = "Cos">
+<input class="B3" type = "button" onclick = "doSpecial('square')"
+value = "x2">
+<input class="B3" type = "button" onclick =
+"doSpecial('cube')" value = "x3">
+<input class="B3" type = "button" onclick =
+"doSpecial('squareRoot')" value = "√x">
+<input class="B2" type = "button" onclick = "doOperator('÷')"
+value = "÷">
+<br>
+<input class="B3" type = "button" onclick = "doSpecial('sin')"
+value = "Tan">
+<input class="B" type = "button" onclick = "doOutput('7')" value =
+"7">
+<input class="B" type = "button" onclick = "doOutput('8')" value =
+"8">
+<input class="B" type = "button" onclick = "doOutput('9')" value =
+"9">
+<input class="B2" type = "button" onclick = "doOperator('×')"
+value = "×">
+<br>
+<input class="B3" type = "button" onclick = "doSet()" value = "Set">
+<input class="B" type = "button" onclick = "doOutput('4')" value = "4">
+<input class="B" type = "button" onclick = "doOutput('5')" value =
+
+"5">
+<input class="B" type = "button" onclick = "doOutput('6')" value =
+"6">
+<input class="B2" type = "button" onclick = "doOperator('-')"
+value = "-">
+<br>
+<input class="B3" type = "button" onclick = "doSpecial('Mem')"
+value = "Mem">
+<input class="B" type = "button" onclick = "doOutput('1')" value =
+"1">
+<input class="B" type = "button" onclick = "doOutput('2')" value =
+"2">
+<input class="B" type = "button" onclick = "doOutput('3')" value =
+"3">
+<input class="B2" type = "button" onclick = "doOperator('+')"
+value = "+">
+<br>
+<input class="B3" type = "button" onclick = "doFun()" value = "Fun">
+<input class="B" type = "button" onclick = "doOutput('0')" value = "0">
+<input class="B" type = "button" onclick = "doOutput('.')" value = ".">
+<input class="B3" type = "button" onclick = "doSpecial('switch')" value = "±">
+<input class="B2" type = "button" onclick = "answer()" value =
+"=">
+<br>
+<br> </div>
+<br>
+<br>
+<pre id="hideme">Idealy, this text wouldn't be here. The fun button will hide it. I just put it here so you can get an idea of how it works.
+Press pre to use previous equation again. This can also be done by hitting the equal after doing a operation
+twice, I.E. 2+3, then +3, then equal will keep adding 3.
+Ans key will act as a storage of the previous answer.
+Set will set the memory storage to the current number selected (works better after hitting equal).
+Mem will be 0 by default, can be set by Set key.
+The "Fun" key changes the background color.</pre> </body>
+</html>
