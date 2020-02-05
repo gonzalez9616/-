@@ -749,3 +749,4 @@ $(document).keyup(function(event){  //jQuery code to recognize a keyup event
         ufo.left = 0;
     }
 });
+//End code
