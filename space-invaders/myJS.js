@@ -750,3 +750,9 @@ $(document).keyup(function(event){  //jQuery code to recognize a keyup event
     }
 });
 //End code
+//Touch integration
+function enableEnter() {
+  if (gameOver) {
+      enter = true;
+  }
+}
