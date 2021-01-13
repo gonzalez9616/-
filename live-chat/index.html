@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Firebase Basic Example</title>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-app.js"></script>
+
+    <!-- Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-firestore.js"></script>
+
+    <script>
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        var firebaseConfig = {
+            apiKey: "AIzaSyASOZNuboYfzw1CV2gOKavjiZnH4pzoiG0",
+            authDomain: "fir-basic-example.firebaseapp.com",
+            projectId: "fir-basic-example",
+            storageBucket: "fir-basic-example.appspot.com",
+            messagingSenderId: "933564106583",
+            appId: "1:933564106583:web:73ae94011620c244e12012",
+            measurementId: "G-VWCJSBXKSJ"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
+
+    <script src="js.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+    <body>
+        <h1 id="userGreet">Please sign in</h1>
+        <button type="button" onclick="userSignIn()">Sign In</button>
+        <br>
+        <br>
+        <br>
+        <br>
+        <p id="displayMessages"></p>
+        <br>
+        <input id="messageBox" type="text">
+        <button type="button" onclick="sendMessage()">Send Message</button>
+    </body>
+</html>
