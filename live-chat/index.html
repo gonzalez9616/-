@@ -29,18 +29,26 @@
 
 
     <script src="js.js"></script>
+    <link rel="icon" href="icon.png">
     <link rel="stylesheet" href="style.css">
 </head>
-    <body>
-        <h1 id="userGreet">Please sign in</h1>
-        <button type="button" onclick="userSignIn()">Sign In</button>
-        <br>
-        <br>
-        <br>
-        <br>
-        <p id="displayMessages"></p>
-        <br>
-        <input id="messageBox" type="text">
-        <button type="button" onclick="sendMessage()">Send Message</button>
+    <body onload="onLoad()">
+        <h1 id="displayUser"></h1>
+        <div id="messages">
+            <div id="displayMessages"></div>
+            <div id="messageSendBox">
+                <input id="messageInputBox" type="text">
+                <button id="messageSendButton" type="button" onclick="sendMessage()">➔</button>
+            </div>
+            <p style="color:white;">Select Channel:</p>
+            <select id="channelSelect" onchange="swapSelectedChannel()">
+
+            </select>
+        </div>
+
+        <div id="signInBlock">
+            <h1 id="userGreet">Please sign in</h1>
+            <button id="signInButton" type="button" onclick="userSignIn()">Sign In</button>
+        </div>
     </body>
 </html>
