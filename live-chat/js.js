@@ -28,9 +28,10 @@ const maxCombinedMessagesNum = 10; //The max number of messages that can be comb
 const maxTimeDifBetweenCombinedMessages = 60 * 5; //Max time between combined messages
 
 //Define on load
-let userInputBox, displayUser, signInBlock, channelSelect, displayAllUsers, mainContentDiv
+let userInputBox, displayUser, motdInput, signInBlock, channelSelect, displayAllUsers, mainContentDiv
 function onLoad() {
     displayUser = document.getElementById('displayUser')
+    motdInput = document.getElementById("motdInput")
     signInBlock = document.getElementById('signInBlock')
     userInputBox = document.getElementById('messageInputBox')
     channelSelect = document.getElementById('channelSelect')
@@ -72,6 +73,32 @@ function onLoad() {
         }
     })
 
+    motdInput.addEventListener("keydown", function(key) {
+        if (key && key.key === 'Enter' && !key.getModifierState('Shift')) {
+            document.activeElement.blur();
+        }
+    })
+
+    let motdCounter = 0;
+    motdInput.addEventListener("focusout", function() {
+        let lastValue = motdInput.value;
+        motdCounter++;
+        let lastCounter = motdCounter;
+        setTimeout(function() {
+            if (motdCounter === lastCounter) {
+                if (lastValue === motdInput.value) {
+                    //5 second interval of no change = change database\
+                    if (userData.motd === motdInput.value) {
+                        return
+                    }
+                    db.collection("users").doc(user.uid).update({
+                        motd: motdInput.value
+                    })
+                }
+            }
+        }, 5 * 1000)
+    })
+
     mainContentDiv.addEventListener("scroll", function() {
         lastPos = mainContentDiv.scrollTop
         scrollingWithContent = (mainContentDiv.scrollTop) > (mainContentDiv.scrollHeight - mainContentDiv.offsetHeight - 15)
@@ -83,8 +110,15 @@ function onLoad() {
 function fixDumbCss() {
     let baseContentDiv = document.getElementsByClassName("baseDiv")[0]
     let topContentDiv = document.getElementsByClassName("topContent")[0]
+    let leftContentDiv = document.getElementsByClassName("leftContent")[0]
+    let rightContentDiv = document.getElementsByClassName("rightContent")[0]
     let centerContentDiv = document.getElementsByClassName("centerContent")[0]
-    centerContentDiv.style.height = (baseContentDiv.clientHeight - topContentDiv.clientHeight) + "px"
+    let height = Math.floor(window.innerHeight - topContentDiv.clientHeight) + "px"
+    centerContentDiv.style.height = height
+    rightContentDiv.style.height = height
+    rightContentDiv.style.top = topContentDiv.clientHeight + "px"
+
+    centerContentDiv.style.width = Math.floor(window.innerWidth - rightContentDiv.clientWidth - leftContentDiv.clientWidth) + "px"
 
     window.requestAnimationFrame(fixDumbCss)
 }
@@ -102,6 +136,7 @@ function scrollDown() {
 
 function removeSignInBlock() {
     displayUser.innerText = "Signed In As: " + user.displayName
+    motdInput.value = userData.motd
     signInBlock.style.display = 'none'
     displayUser.style.display = 'block'
 }
@@ -179,22 +214,37 @@ function displayUserSnapshot(snapshot) {
         let data = doc.data()
         let div = document.createElement("div")
 
-        let height = 25;
+        let size = 50;
 
         let img = document.createElement("img")
         img.src = data.displayImage;
-        img.width = height;
-        img.height = height;
+        img.width = size;
+        img.height = size;
         img.style.float = "left"
+        img.style.borderRadius = (size / 2) + "px"
+
+        let innerDiv = document.createElement("div")
+        innerDiv.style.height = size + "px"
+        innerDiv.style.float = "left"
 
         let p = document.createElement("p")
         p.innerText = data.displayName
-        p.style.fontSize = height + "px"
-        p.style.float = "left"
+        p.style.fontSize = (size * 0.5) + "px"
         p.style.margin = '0px';
         p.style.paddingLeft = "8px"
+        p.style.textAlign = "left"
 
-        div.append(img, p)
+        let p2 = document.createElement("p")
+        p2.innerText = (data.motd.length > 0 && data.motd) || "..."
+        p2.style.fontSize = (size * 0.33) + "px"
+        p2.style.margin = '0px';
+        p2.style.paddingLeft = "20px"
+        p2.style.textAlign = "left"
+        p2.style.color = "#9f9f9f"
+
+        div.style.paddingTop = "5px"
+        innerDiv.append(p, p2)
+        div.append(img, innerDiv)
         displayAllUsers.appendChild(div)
     })
 }
