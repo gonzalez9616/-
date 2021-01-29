@@ -12,43 +12,42 @@
     <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-firestore.js"></script>
 
-    <script>
-        // Config
-        var firebaseConfig = {
-            apiKey: "AIzaSyASOZNuboYfzw1CV2gOKavjiZnH4pzoiG0",
-            authDomain: "fir-basic-example.firebaseapp.com",
-            projectId: "fir-basic-example",
-            storageBucket: "fir-basic-example.appspot.com",
-            messagingSenderId: "933564106583",
-            appId: "1:933564106583:web:73ae94011620c244e12012",
-            measurementId: "G-VWCJSBXKSJ"
-        };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-    </script>
-
-
     <script src="js.js"></script>
     <link rel="icon" href="icon.png">
     <link rel="stylesheet" href="style.css">
 </head>
-    <body onload="onLoad()">
+<body onload="onLoad()">
+<div class="baseDiv">
+    <div class="topContent contentDiv">
         <h1 id="displayUser"></h1>
-        <div id="messages">
+    </div>
+    <div class="leftContent contentDiv">
+        <div id="channelSelect">
+
+        </div>
+        <div id="userProfile">
+            <input id="statusInput" type="text" placeholder="Enter a status...">
+        </div>
+    </div>
+
+    <div class="centerContent">
+        <div class="mainContent contentDiv">
             <div id="displayMessages"></div>
-            <div id="messageSendBox">
-                <input id="messageInputBox" type="text">
-                <button id="messageSendButton" type="button" onclick="sendMessage()">➔</button>
-            </div>
-            <p style="color:white;">Select Channel:</p>
-            <select id="channelSelect" onchange="swapSelectedChannel()">
-
-            </select>
         </div>
 
-        <div id="signInBlock">
-            <h1 id="userGreet">Please sign in</h1>
-            <button id="signInButton" type="button" onclick="userSignIn()">Sign In</button>
+        <div class="bottomContent contentDiv">
+            <div id="messageInputBox" contenteditable="true" placeholder="Enter a message..."></div>
         </div>
-    </body>
+    </div>
+
+    <div class="rightContent contentDiv">
+        <div id="displayAllUsers"></div>
+    </div>
+</div>
+
+<div id="signInBlock">
+    <h1 id="userGreet">Please sign in</h1>
+    <button id="signInButton" type="button" onclick="userSignIn()">Sign In With Google</button>
+</div>
+</body>
 </html>
