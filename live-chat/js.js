@@ -19,18 +19,23 @@ let provider = new firebase.auth.GoogleAuthProvider();
 //Setup vars
 let user
 let userData
-let displayData = {};
-let selectedChannel = 'main';
+let displayData = {
+    messages: {},
+    selectedChannel: 'main',
+    snapshotDisconnectFunction: function() {},
+};
 
 //Const
-const maxMessages = 100; //Max number of messages to load
+const maxMessages = 30; //Max number of messages to load
+// TODO: Change this to 30 and make scrolling up load more, display user logged in on bottom left, LiveChat on top + channel, and make channel selection ordered + better
 const maxCombinedMessagesNum = 10; //The max number of messages that can be combined
 const maxTimeDifBetweenCombinedMessages = 60 * 5; //Max time between combined messages
 
 //Define on load
-let userInputBox, displayUser, motdInput, signInBlock, channelSelect, displayAllUsers, mainContentDiv
+let userInputBox, displayUser, displayMessages, motdInput, signInBlock, channelSelect, displayAllUsers, mainContentDiv
 function onLoad() {
     displayUser = document.getElementById('displayUser')
+    displayMessages = document.getElementById('displayMessages')
     motdInput = document.getElementById("motdInput")
     signInBlock = document.getElementById('signInBlock')
     userInputBox = document.getElementById('messageInputBox')
@@ -190,7 +195,7 @@ function sendMessage() {
     if (!user) {
         alert('Sign in first')
     } else if (userInput.length > 0 && userInput.trim().length > 0) {
-        let messages = db.collection("channels").doc(selectedChannel).collection("messages")
+        let messages = db.collection("channels").doc(displayData.selectedChannel).collection("messages")
         messages.add({
             created: firebase.firestore.FieldValue.serverTimestamp(),
             content: userInput,
@@ -259,6 +264,7 @@ async function fetchUsersInit() {
     })
 }
 
+
 async function fetchMessagesInit() {
     let channels = db.collection("channels")
     let channelsSnapshot = await channels.get()
@@ -268,118 +274,135 @@ async function fetchMessagesInit() {
         let id = data.id;
         option.innerText = id;
         option.onclick = function() {
-            selectedChannel = id;
-            swapSelectedChannel()
+            updateSelectedChannel(id)
         }
         channelSelect.appendChild(option)
     })
 
-    selectedChannel = "main";
-
-    swapSelectedChannel()
-    displayMessagesData()
+    updateSelectedChannel(true)
 }
 
-function swapSelectedChannel() {
-    if (displayData) {
-        if (displayData.snapshot) {
-            displayData.snapshot()
+function updateSelectedChannel(newValue) {
+    if (newValue !== true) {
+        if (displayData.selectedChannel === newValue) {
+            return
+        } else {
+            displayData.selectedChannel = newValue
         }
     }
 
-    let thisChannel = selectedChannel
+    displayData.snapshotDisconnectFunction() //Disconnect previous snapshot if it exists
 
     let channels = db.collection("channels")
-    let messages = channels.doc(thisChannel).collection("messages")
+    let messages = channels.doc(displayData.selectedChannel).collection("messages")
 
-    let query = messages.orderBy("created", "desc").limit(maxMessages + 1); //most recent message first, then the last x
+    let queryBase = messages.orderBy("created", "desc") //most recent message first, then the last x
 
-    displayData = {
-        data: null,
-        snapshot: null,
+    if (!displayData.messages[displayData.selectedChannel]) {
+        displayData.messages[displayData.selectedChannel] = []
+        queryBase.limit(maxMessages).get() //First get to catch up
+            .then((snapshot) => {
+                redisplayAllMessages()
+                snapshot.forEach(function(doc) {
+                    addNewMessage(doc.id, doc.data(), true)
+                })
+            })
+    } else {
+        redisplayAllMessages()
     }
-    query.get() //First get to catch up
-        .then((snapshot) => {
-            displayMessageSnapshot(snapshot, thisChannel)
+
+    let firstCall = true;
+    displayData.snapshotDisconnectFunction = queryBase.limit(1).onSnapshot((snapshot) => {
+        if (firstCall) {
+            firstCall = false;
+            return
+        }
+        snapshot.forEach(function(doc) {
+            addNewMessage(doc.id, doc.data())
         })
-
-
-    displayData.snapshot = query.onSnapshot((snapshot) => {
-        displayMessageSnapshot(snapshot)
     })
 
     lastHeight = 0
 }
 
-function displayMessageSnapshot(snapshot) {
-    let messages = []
-    snapshot.forEach(function(doc) {
-        let data = doc.data()
+function addNewMessage(docId, data, atBeginning) {
+    if (data.created && data.content && data.content.length > 0) {
+        let date = new Date(data.created.seconds * 1000)
+        let timestamp = date.toTimeString()
+        let formatted = timestamp.split(" ")[0]
 
-        if (data.created && data.content && data.content.length > 0) {
-            let date = new Date(data.created.seconds * 1000)
-            let timestamp = date.toTimeString()
-            let formatted = timestamp.split(" ")[0]
-            let asString = formatted + " " + data.displayName + ": " + data.content
-            messages.splice(0, 0, {
-                content: asString,
-                uId: data.uId,
-                seconds: data.created.seconds,
-            })
+        let reformattedData = {
+            id: docId,
+            uId: data.uId,
+            displayName: data.displayName,
+            displayImage: data.displayImage,
+            content: data.content,
+            seconds: data.created.seconds,
         }
-    });
 
-    while (messages.length > maxMessages) {
-        messages.shift()
+        let messages = displayData.messages[displayData.selectedChannel]
+        if (!atBeginning) {
+            messages.push(reformattedData)
+        } else {
+            messages.splice(0, 0, reformattedData)
+        }
+
+        displayMessage(reformattedData, atBeginning)
     }
-
-    displayData.data = messages
-    displayMessagesData()
 }
 
-function displayMessagesData() {
-    let messages = displayData && displayData.data
+function displayMessage(data, atBeginning) {
+    const size = 42;
 
-    if (!messages) {
-        return
+    let div = document.createElement("div")
+    div.setAttribute("class", "message")
+
+    let img = document.createElement("img")
+
+    img.src = data.displayImage;
+    img.width = size;
+    img.height = size;
+    img.style.float = "left"
+    img.style.borderRadius = (size / 2) + "px"
+
+    let right = document.createElement("div")
+    right.setAttribute("class", "messageContainer")
+
+    let headerContainer = document.createElement("div")
+    headerContainer.style.fontSize = "0px" //Why this is needed, who knows
+
+    let name = document.createElement("p")
+    name.setAttribute("class", "messageHeader")
+    name.innerText = data.displayName;
+
+    let time = document.createElement("p")
+    time.setAttribute("class", "messageTimestamp")
+    time.innerText = "Today at 4:22 PM";
+
+    let content = document.createElement("p")
+    content.setAttribute("class", "messageContent")
+    content.innerText = data.content
+
+    headerContainer.append(name, time)
+    right.append(headerContainer, content)
+    div.append(img, right)
+
+    if (!atBeginning) {
+        displayMessages.appendChild(div)
+    } else {
+        displayMessages.insertBefore(div, displayMessages.firstChild);
     }
 
-    let displayMessages = document.getElementById('displayMessages')
-    displayMessages.innerHTML = ""
-
-    let lastData
-    messages.forEach(function(value) {
-        //Checks for criteria in which to combine messages by the same person if the time combined & number of combined
-        //is within constants (makes chat nicer)
-        if (lastData && lastData.uId === value.uId &&
-            (value.seconds - lastData.begin) < maxTimeDifBetweenCombinedMessages &&
-            lastData.num < maxCombinedMessagesNum)
-        {
-            lastData.num++;
-            lastData.p.innerText = lastData.p.innerText + "\n" + value.content
-        } else {
-            let div = document.createElement("div")
-            let p = document.createElement("p")
-
-            p.setAttribute("class", "messageContent")
-            div.setAttribute("class", "message")
-            p.innerText = value.content
-
-            div.appendChild(p)
-            displayMessages.appendChild(div)
-
-
-            lastData = {
-                p: p,
-                uId: value.uId,
-                num: 1,
-                begin: value.seconds,
-            }
-        }
-    })
     scrollDown()
 }
 
-function displayNewMessage() {
+function redisplayAllMessages() {
+    displayMessages.innerHTML = ""
 
+    let messages = displayData.messages[displayData.selectedChannel]
+    if (messages) {
+        messages.forEach(function(data) {
+            displayMessage(data, false)
+        })
+    }
 }
