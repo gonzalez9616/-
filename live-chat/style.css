@@ -58,12 +58,14 @@ body {
 }
 .leftContent {
     grid-column: 1 / 2;
+    display: grid;
+    grid-template-rows: 1fr auto;
 }
 
 .centerContent {
     grid-column: 2 / 3;
     display: grid;
-    grid-template: 1fr auto / auto;
+    grid-template: auto 1fr auto / auto;
 }
 
 .rightContent {
@@ -72,19 +74,17 @@ body {
     right: 0;
 }
 
-.topContent, .rightContent, .leftContent {
+.topContent, .rightContent, .leftContent, .infoContent {
     background-color: #242424;
 }
 
 /* Center part (main + send) */
 
 .mainContent {
-    grid-column: 1;
     overflow-y: scroll;
 }
 
 .bottomContent {
-    grid-column: 1;
     width: inherit;
 }
 
@@ -181,15 +181,51 @@ body {
     flex-direction: column;
 }
 
+.channel {
+    outline: none;
+    border: none;
+    background-color: transparent;
+    color: white;
+    font-size: 20px;
+    text-align: left;
+    padding-left: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Users Containers */
+
+.userDisplayName {
+    font-size: calc(50px / 2);
+    margin: 0px;
+    padding-left: 8px;
+    text-align: left;
+}
+
+.userMotdDisplay {
+    font-size: calc(50px / 3);
+    margin: 0px;
+    padding-left: 20px;
+    text-align: left;
+    color: #9f9f9f;
+}
+
 /* User Profile */
 #motdInput {
-    background-color: #4f4f4f;
+    background-color: #4a4a4a;
     color: #ffffff;
 
     outline: none;
     border: none;
-    border-radius: 10px;
+    font-size: 15px;
+    border-radius: 7px;
     padding: 5px;
+    margin: 0px;
+    margin-top: 5px;
+}
+
+#userProfile {
+    padding: 15px;
 }
 
 /* Right Display */
@@ -200,8 +236,33 @@ body {
 }
 
 /* Top Display */
-#displayUser {
-    margin: 5px;
+#titleContainer {
+    background-color: #111111;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+}
+#title {
+    margin: 0px;
+    text-align: left;
+    font-size: 15px;
+    padding-left: 10px;
+    font-weight: bold;
+}
+
+#displayChannel {
+    font-size: 25px;
+    margin: 0px;
+    padding: 10px;
+    padding-left: 20px;
+}
+
+#displayChannelDesc {
+    color: #e0e0e0;
+    font-size: 15px;
+    margin: auto 0;
+    padding-left: 15px;
+    text-align: left;
 }
 
 /* Scrollbar */

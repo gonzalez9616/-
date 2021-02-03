@@ -21,13 +21,14 @@ let user
 let userData
 let displayData = {
     messages: {},
-    selectedChannel: 'main',
+    descriptions: {},
+    selectedChannel: '',
     snapshotDisconnectFunction: function() {},
 };
 
 //Const
 const maxMessages = 30; //Max number of messages to load
-// TODO: Make times not 4:22pm, Change this to 30 and make scrolling up load more, display user logged in on bottom left, LiveChat on top + channel, and make channel selection ordered + better
+// TODO: Change this to 30 and make scrolling up load more, LiveChat on top + channel, and make channel selection ordered + better
 const maxCombinedMessagesNum = 10; //The max number of messages that can be combined
 const maxTimeDifBetweenCombinedMessages = 60 * 5; //Max time between combined messages
 
@@ -140,7 +141,8 @@ function scrollDown() {
 }
 
 function removeSignInBlock() {
-    displayUser.innerText = "Signed In As: " + user.displayName
+    document.getElementById('userProfileName').innerText = userData.displayName
+    document.getElementById('userProfileImage').src = userData.displayImage
     motdInput.value = userData.motd
     signInBlock.style.display = 'none'
     displayUser.style.display = 'block'
@@ -212,45 +214,41 @@ function sendMessage() {
     }, 0)
 }
 
+function createUserView(data) {
+    let div = document.createElement("div")
+
+    let size = 50;
+
+    let img = document.createElement("img")
+    img.src = data.displayImage;
+    img.width = size;
+    img.height = size;
+    img.style.float = "left"
+    img.style.borderRadius = (size / 2) + "px"
+
+    let innerDiv = document.createElement("div")
+    innerDiv.style.height = size + "px"
+    innerDiv.style.float = "left"
+
+    let p = document.createElement("p")
+    p.setAttribute("class", "userDisplayName")
+    p.innerText = data.displayName
+
+    let p2 = document.createElement("p")
+    p2.innerText = (data.motd.length > 0 && data.motd) || "..."
+    p2.setAttribute("class", "userMotdDisplay")
+
+    div.style.paddingTop = "5px"
+    innerDiv.append(p, p2)
+    div.append(img, innerDiv)
+    displayAllUsers.appendChild(div)
+}
 
 function displayUserSnapshot(snapshot) {
     displayAllUsers.innerHTML = ""
     snapshot.forEach((doc) => {
         let data = doc.data()
-        let div = document.createElement("div")
-
-        let size = 50;
-
-        let img = document.createElement("img")
-        img.src = data.displayImage;
-        img.width = size;
-        img.height = size;
-        img.style.float = "left"
-        img.style.borderRadius = (size / 2) + "px"
-
-        let innerDiv = document.createElement("div")
-        innerDiv.style.height = size + "px"
-        innerDiv.style.float = "left"
-
-        let p = document.createElement("p")
-        p.innerText = data.displayName
-        p.style.fontSize = (size * 0.5) + "px"
-        p.style.margin = '0px';
-        p.style.paddingLeft = "8px"
-        p.style.textAlign = "left"
-
-        let p2 = document.createElement("p")
-        p2.innerText = (data.motd.length > 0 && data.motd) || "..."
-        p2.style.fontSize = (size * 0.33) + "px"
-        p2.style.margin = '0px';
-        p2.style.paddingLeft = "20px"
-        p2.style.textAlign = "left"
-        p2.style.color = "#9f9f9f"
-
-        div.style.paddingTop = "5px"
-        innerDiv.append(p, p2)
-        div.append(img, innerDiv)
-        displayAllUsers.appendChild(div)
+        createUserView(data)
     })
 }
 
@@ -267,19 +265,28 @@ async function fetchUsersInit() {
 
 async function fetchMessagesInit() {
     let channels = db.collection("channels")
-    let channelsSnapshot = await channels.get()
+    let channelsSnapshot = await channels.orderBy("index").get()
+
+    let elements = []
 
     channelsSnapshot.forEach((data) => {
         let option = document.createElement("button")
         let id = data.id;
-        option.innerText = id;
+        displayData.descriptions[id] = data.data().description
+        option.innerText = "#" + id;
         option.onclick = function() {
+            elements.forEach(function(node) {
+                node.style.backgroundColor = "transparent";
+            })
+            option.style.backgroundColor = "rgba(255, 255, 255, 0.075)";
             updateSelectedChannel(id)
         }
+        option.setAttribute("class", "channel")
         channelSelect.appendChild(option)
+        elements.push(option)
     })
 
-    updateSelectedChannel(true)
+    elements[0].click()
 }
 
 function updateSelectedChannel(newValue) {
@@ -292,6 +299,9 @@ function updateSelectedChannel(newValue) {
     }
 
     displayData.snapshotDisconnectFunction() //Disconnect previous snapshot if it exists
+
+    document.getElementById('displayChannel').innerText = "#" + displayData.selectedChannel
+    document.getElementById('displayChannelDesc').innerText = displayData.descriptions[displayData.selectedChannel]
 
     let channels = db.collection("channels")
     let messages = channels.doc(displayData.selectedChannel).collection("messages")

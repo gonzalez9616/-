@@ -19,18 +19,31 @@
 <body onload="onLoad()">
 <div class="baseDiv">
     <div class="topContent contentDiv">
-        <h1 id="displayUser"></h1>
+        <div id="titleContainer">
+            <img width="20" height="20" src="icon.png" style="vertical-align: center; margin: auto 0;">
+            <p id="title">LiveChat</p>
+        </div>
     </div>
     <div class="leftContent contentDiv">
         <div id="channelSelect">
 
         </div>
         <div id="userProfile">
-            <input id="motdInput" type="text" placeholder="Enter a status..." maxlength="40">
+            <img id="userProfileImage" src="" width="60" height="60" style="float: left; border-radius: 50%;">
+            <div style="float: left;">
+                <p id="userProfileName" class="userDisplayName">Loading...</p>
+                <p class="userMotdDisplay" style="padding-left: 8px">
+                    <input id="motdInput" type="text" placeholder="Enter a status..." maxlength="40">
+                </p>
+            </div>
         </div>
     </div>
 
     <div class="centerContent">
+        <div class="infoContent contentDiv" style="display: grid; grid-template-columns: auto 1fr">
+            <p id="displayChannel">#channel</p>
+            <p id="displayChannelDesc">If you are reading this right now, then something has gone horribly wrong.</p>
+        </div>
         <div class="mainContent contentDiv">
             <div id="displayMessages"></div>
         </div>
