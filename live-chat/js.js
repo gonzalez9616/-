@@ -27,7 +27,7 @@ let displayData = {
 
 //Const
 const maxMessages = 30; //Max number of messages to load
-// TODO: Change this to 30 and make scrolling up load more, display user logged in on bottom left, LiveChat on top + channel, and make channel selection ordered + better
+// TODO: Make times not 4:22pm, Change this to 30 and make scrolling up load more, display user logged in on bottom left, LiveChat on top + channel, and make channel selection ordered + better
 const maxCombinedMessagesNum = 10; //The max number of messages that can be combined
 const maxTimeDifBetweenCombinedMessages = 60 * 5; //Max time between combined messages
 
@@ -325,11 +325,59 @@ function updateSelectedChannel(newValue) {
     lastHeight = 0
 }
 
+function getFormattedTimestamp(date, today) {
+
+    let prefix = date.toLocaleDateString({
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+    })
+
+    function adjustDate(value) {
+        //Takes date and moves it to the beginning of the day
+        let adjusted = new Date()
+        adjusted.setTime(value.getTime())
+        adjusted.setHours(0)
+        adjusted.setMinutes(0)
+        adjusted.setSeconds(0)
+        return adjusted
+    }
+
+    let adjustedToday = adjustDate(today)
+    let adjustedDate = adjustDate(date)
+
+    let daysBetween = Math.floor((adjustedToday.getTime() - adjustedDate.getTime()) / 24 / 60 / 60 / 1000)
+
+    if (daysBetween === 0) {
+        prefix = "Today"
+    } else if (daysBetween === 1) {
+        prefix = "Yesterday"
+    }
+
+    let hours = date.getHours() % 12
+    if (hours === 0) {
+        hours = 12;
+    }
+
+    let timeS = hours + ":"
+
+    let mins = date.getMinutes()
+    if (mins < 10) {
+        timeS += "0"
+    }
+    timeS += mins
+    let adder = (date.getHours() >= 12) ? "PM" : "AM"
+    timeS += " " + adder
+
+    return prefix + " at " + timeS
+}
+
 function addNewMessage(docId, data, atBeginning) {
     if (data.created && data.content && data.content.length > 0) {
+        let today = new Date();
         let date = new Date(data.created.seconds * 1000)
-        let timestamp = date.toTimeString()
-        let formatted = timestamp.split(" ")[0]
+
+        let formatted = getFormattedTimestamp(date, today)
 
         let reformattedData = {
             id: docId,
@@ -337,6 +385,7 @@ function addNewMessage(docId, data, atBeginning) {
             displayName: data.displayName,
             displayImage: data.displayImage,
             content: data.content,
+            fTime: formatted,
             seconds: data.created.seconds,
         }
 
@@ -352,7 +401,7 @@ function addNewMessage(docId, data, atBeginning) {
 }
 
 function displayMessage(data, atBeginning) {
-    const size = 42;
+    const size = 40;
 
     let div = document.createElement("div")
     div.setAttribute("class", "message")
@@ -377,7 +426,7 @@ function displayMessage(data, atBeginning) {
 
     let time = document.createElement("p")
     time.setAttribute("class", "messageTimestamp")
-    time.innerText = "Today at 4:22 PM";
+    time.innerText = data.fTime;
 
     let content = document.createElement("p")
     content.setAttribute("class", "messageContent")
