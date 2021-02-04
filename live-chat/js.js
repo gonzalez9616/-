@@ -146,48 +146,62 @@ function removeSignInBlock() {
     signInBlock.style.display = 'none'
 }
 
+function handleAuthChange(newUser) {
+    if (newUser) {
+        //Worked
+        user = newUser;
+
+        let doc = db.collection("users").doc(user.uid)
+
+        doc.get().then((snapshot => {
+            if (snapshot.exists) {
+                //Already has user data
+                userData = snapshot.data();
+                removeSignInBlock()
+            } else {
+                //Need to make user data
+                let newData = {
+                    displayName: user.displayName,
+                    displayImage: user.photoURL,
+                    status: 0,
+                    motd: "",
+                    admin: false,
+                }
+                doc.set(newData).then(() => {
+                    userData = newData
+                    removeSignInBlock()
+                }).catch(issue => {
+                    console.log("Throttling issue likely: " + issue)
+                })
+            }
+        })).catch(issue => {
+            console.log("Throttling issue likely: " + issue)
+        })
+
+        fetchMessagesInit()
+        fetchUsersInit()
+    }
+}
+
+handleAuthChange(firebase.auth().currentUser)
+firebase.auth().onAuthStateChanged(handleAuthChange);
+
 function userSignIn() {
     firebase.auth()
         .signInWithPopup(provider)
         .then((result) => {
-            //Worked
-            user = result.user;
 
-            let doc = db.collection("users").doc(user.uid)
-
-            doc.get().then((snapshot => {
-                if (snapshot.exists) {
-                    //Already has user data
-                    userData = snapshot.data();
-                    removeSignInBlock()
-                } else {
-                    //Need to make user data
-                    let newData = {
-                        displayName: user.displayName,
-                        displayImage: user.photoURL,
-                        status: 0,
-                        motd: "",
-                        admin: false,
-                    }
-                    doc.set(newData).then(() => {
-                        userData = newData
-                        removeSignInBlock()
-                    }).catch(issue => {
-                        console.log("Throttling issue likely: " + issue)
-                    })
-                }
-            })).catch(issue => {
-                console.log("Throttling issue likely: " + issue)
-            })
-
-            fetchMessagesInit()
-            fetchUsersInit()
         }).catch((error) => {
-        //Failed
-        console.log("Failed auth: " + error.code)
-        console.log(error)
-    });
+            //Failed
+            console.log("Failed auth: " + error.code)
+            console.log(error)
+        });
+}
 
+function userSignOut() {
+    firebase.auth().signOut().then(() => {
+        window.location.reload()
+    })
 }
 
 function sendMessage() {
