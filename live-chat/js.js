@@ -33,9 +33,8 @@ const maxCombinedMessagesNum = 10; //The max number of messages that can be comb
 const maxTimeDifBetweenCombinedMessages = 60 * 5; //Max time between combined messages
 
 //Define on load
-let userInputBox, displayUser, displayMessages, motdInput, signInBlock, channelSelect, displayAllUsers, mainContentDiv
+let userInputBox, displayMessages, motdInput, signInBlock, channelSelect, displayAllUsers, mainContentDiv
 function onLoad() {
-    displayUser = document.getElementById('displayUser')
     displayMessages = document.getElementById('displayMessages')
     motdInput = document.getElementById("motdInput")
     signInBlock = document.getElementById('signInBlock')
@@ -145,7 +144,6 @@ function removeSignInBlock() {
     document.getElementById('userProfileImage').src = userData.displayImage
     motdInput.value = userData.motd
     signInBlock.style.display = 'none'
-    displayUser.style.display = 'block'
 }
 
 function userSignIn() {
