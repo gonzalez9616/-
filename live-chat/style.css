@@ -123,8 +123,9 @@ body {
 
 /* Message container */
 #displayMessages {
+    min-height: 100%;
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
     flex-direction: column;
     padding-left: 30px;
     padding-right: 30px;
