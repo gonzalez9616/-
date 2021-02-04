@@ -230,6 +230,13 @@ body {
 }
 
 /* Right Display */
+#usersHeader {
+    margin: 0;
+    padding-top: 10px;
+    text-align: center;
+    font-size: 30px;
+}
+
 #displayAllUsers {
     padding: 10px;
     display: flex;
