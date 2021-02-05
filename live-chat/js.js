@@ -180,11 +180,27 @@ function handleAuthChange(newUser) {
 
         fetchMessagesInit()
         fetchUsersInit()
+    } else {
+        let container = document.getElementById('signInContainer')
+        if (container) {
+            container.style.display = "block"
+        } else {
+            window.requestAnimationFrame(function() {
+                handleAuthChange(false)
+            })
+        }
     }
 }
 
-handleAuthChange(firebase.auth().currentUser)
-firebase.auth().onAuthStateChanged(handleAuthChange);
+let init = false
+setTimeout(function() {
+    if (init) {return}
+    handleAuthChange(firebase.auth().currentUser)
+}, 500)
+firebase.auth().onAuthStateChanged(function(user) {
+    init = true
+    handleAuthChange(user)
+});
 
 function userSignIn() {
     firebase.auth()

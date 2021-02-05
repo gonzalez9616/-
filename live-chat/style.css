@@ -266,6 +266,7 @@ body {
     font-size: 18px;
     padding-right: 10px;
     font-weight: bold;
+    cursor: pointer;
 }
 
 #displayChannel {
