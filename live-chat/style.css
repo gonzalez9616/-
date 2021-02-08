@@ -141,6 +141,7 @@ body {
 }
 
 .messageContainer {
+    position: relative;
     float: left;
     padding-left: 10px;
     width: calc(100% - 50px - 10px)
@@ -165,8 +166,6 @@ body {
 }
 
 .messageContent {
-    float: left;
-    clear: both;
     width: fit-content;
     word-break: break-word;
     color: #dddddd;
@@ -174,6 +173,105 @@ body {
     font-weight: normal;
 
     margin: 0;
+}
+
+/* Reaction Of Messages */
+.messageReactionAddButton {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background-color: #454545;
+    border: none;
+    border-radius: 5px;
+    padding: 5px;
+    color: #ffffff;
+    cursor: pointer;
+
+    opacity: 0;
+}
+
+.message:hover .messageReactionAddButton {
+    opacity: 1;
+    transition: opacity 0.25s;
+}
+
+.messageReactionContainer {
+    display: block;
+    font-size: 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.messageReaction {
+    display: inline;
+    font-size: 15px;
+    background-color: rgba(255, 255, 255, 0.10);
+    border-radius: 5px;
+    padding: 5px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.selectedMessageReaction {
+    background-color: rgba(200, 255, 255, 0.20);
+}
+
+.messageReactionNumber {
+    display: inline;
+    margin: 0;
+    padding-right: 3px;
+}
+
+.messageReactionEmoji {
+    display: inline;
+    margin: 0;
+}
+
+/* React Menu Popup */
+#reactMenu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#reactMenuContainer {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    padding: 20px;
+    background-color: #4f4f4f;
+    border-radius: 10px;
+    color: #ffffff;
+    margin: 0;
+}
+
+#reactMenuHeader {
+    font-size: 30px;
+    text-align: center;
+    margin: 0;
+    padding-bottom: 15px;
+}
+
+.enlargedMessageReaction {
+    font-size: 30px;
+}
+
+#reactMenuClose {
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: #ff3b3b;
+    font-size: 30px;
+    cursor: pointer;
 }
 
 /* Channel selection */

@@ -1,70 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>LiveChat</title>
+    <head>
+        <meta charset="UTF-8">
+        <title>LiveChat</title>
 
-    <!-- The core Firebase JS SDK is always required and must be listed first -->
-    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-app.js"></script>
+        <!-- The core Firebase JS SDK is always required and must be listed first -->
+        <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-app.js"></script>
 
-    <!-- Add SDKs for Firebase products that you want to use
-         https://firebase.google.com/docs/web/setup#available-libraries -->
-    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-firestore.js"></script>
+        <!-- Add SDKs for Firebase products that you want to use
+             https://firebase.google.com/docs/web/setup#available-libraries -->
+        <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.2.2/firebase-firestore.js"></script>
 
-    <script src="js.js"></script>
-    <link rel="icon" href="icon.png">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body onload="onLoad()">
-<div class="baseDiv">
-    <div class="topContent contentDiv">
-        <div id="titleContainer">
-            <img width="20" height="20" src="icon.png" style="vertical-align: center; margin: auto 0;">
-            <p id="title">LiveChat</p>
-            <p id="signOut" onclick="userSignOut()">Sign Out</p>
-        </div>
-    </div>
-    <div class="leftContent contentDiv">
-        <div id="channelSelect">
+        <script src="js.js"></script>
+        <link rel="icon" href="icon.png">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body onload="onLoad()">
+        <div class="baseDiv">
+            <div class="topContent contentDiv">
+                <div id="titleContainer">
+                    <img width="20" height="20" src="icon.png" style="vertical-align: center; margin: auto 0;">
+                    <p id="title">LiveChat</p>
+                    <p id="signOut" onclick="userSignOut()">Sign Out</p>
+                </div>
+            </div>
+            <div class="leftContent contentDiv">
+                <div id="channelSelect">
 
-        </div>
-        <div id="userProfile">
-            <img id="userProfileImage" src="" width="60" height="60" style="float: left; border-radius: 50%;">
-            <div style="float: left;">
-                <p id="userProfileName" class="userDisplayName">Loading...</p>
-                <p class="userMotdDisplay" style="padding-left: 8px">
-                    <input id="motdInput" type="text" placeholder="Enter a status..." maxlength="25">
-                </p>
+                </div>
+                <div id="userProfile">
+                    <img id="userProfileImage" src="" width="60" height="60" style="float: left; border-radius: 50%;">
+                    <div style="float: left;">
+                        <p id="userProfileName" class="userDisplayName">Loading...</p>
+                        <p class="userMotdDisplay" style="padding-left: 8px">
+                            <input id="motdInput" type="text" placeholder="Enter a status..." maxlength="25">
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="centerContent">
+                <div class="infoContent contentDiv" style="display: grid; grid-template-columns: auto 1fr">
+                    <p id="displayChannel">#channel</p>
+                    <p id="displayChannelDesc">If you are reading this right now, then something has gone horribly wrong.</p>
+                </div>
+                <div class="mainContent contentDiv">
+                    <div id="displayMessages"></div>
+                </div>
+
+                <div class="bottomContent contentDiv">
+                    <div id="messageInputBox" contenteditable="true" placeholder="Enter a message..."></div>
+                </div>
+            </div>
+
+            <div class="rightContent contentDiv">
+                <p id="usersHeader">Users</p>
+                <div id="displayAllUsers"></div>
             </div>
         </div>
-    </div>
 
-    <div class="centerContent">
-        <div class="infoContent contentDiv" style="display: grid; grid-template-columns: auto 1fr">
-            <p id="displayChannel">#channel</p>
-            <p id="displayChannelDesc">If you are reading this right now, then something has gone horribly wrong.</p>
-        </div>
-        <div class="mainContent contentDiv">
-            <div id="displayMessages"></div>
+        <div id="reactMenu">
+            <div id="reactMenuContainer">
+                <p id="reactMenuHeader">Select Reaction</p>
+                <button id="reactMenuClose" onclick="openReactMenu(false)">x</button>
+            </div>
         </div>
 
-        <div class="bottomContent contentDiv">
-            <div id="messageInputBox" contenteditable="true" placeholder="Enter a message..."></div>
+        <div id="signInBlock">
+            <div id="signInContainer" style="display:none">
+                <h1 id="userGreet">Please sign in</h1>
+                <button id="signInButton" type="button" onclick="userSignIn()">Sign In With Google</button>
+            </div>
         </div>
-    </div>
-
-    <div class="rightContent contentDiv">
-        <p id="usersHeader">Users</p>
-        <div id="displayAllUsers"></div>
-    </div>
-</div>
-
-<div id="signInBlock">
-    <div id="signInContainer" style="display:none">
-        <h1 id="userGreet">Please sign in</h1>
-        <button id="signInButton" type="button" onclick="userSignIn()">Sign In With Google</button>
-    </div>
-</div>
-</body>
+    </body>
 </html>

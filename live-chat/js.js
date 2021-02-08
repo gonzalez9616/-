@@ -20,20 +20,27 @@ let provider = new firebase.auth.GoogleAuthProvider();
 let user
 let userData
 let displayData = {
-    messages: {},
-    descriptions: {},
+    messages: {}, //Stored as messages[channel][number from top]
+    reactions: {}, //Stored as reactions[messageId]
+    descriptions: {}, //Stored as descriptions[channel]
+    idToChannel: {}, //Stored as idToChannel[messageId] = channel
     selectedChannel: '',
     snapshotDisconnectFunction: function() {},
+    reactSnapshotDisconnectFunction: function() {},
 };
+let pushData = {
+    motdCounter: 0,
+    reactions: {}
+}
 
 //Const
+const reactEmojis = ['💛','👍','👎','😎','🎮']
 const maxMessages = 30; //Max number of messages to load
-// TODO: Change this to 30 and make scrolling up load more, LiveChat on top + channel, and make channel selection ordered + better
 const maxCombinedMessagesNum = 10; //The max number of messages that can be combined
 const maxTimeDifBetweenCombinedMessages = 60 * 5; //Max time between combined messages
 
 //Define on load
-let userInputBox, displayMessages, motdInput, signInBlock, channelSelect, displayAllUsers, mainContentDiv
+let userInputBox, displayMessages, motdInput, signInBlock, channelSelect, displayAllUsers, mainContentDiv, openedMessage, reactMenuContainer
 function onLoad() {
     displayMessages = document.getElementById('displayMessages')
     motdInput = document.getElementById("motdInput")
@@ -42,6 +49,7 @@ function onLoad() {
     channelSelect = document.getElementById('channelSelect')
     displayAllUsers = document.getElementById('displayAllUsers')
     mainContentDiv = document.getElementsByClassName("mainContent")[0]
+    reactMenuContainer = document.getElementById('reactMenuContainer')
 
     //To add focus to typing if not typing in correct box
     document.addEventListener("keydown", function(key) {
@@ -84,13 +92,13 @@ function onLoad() {
         }
     })
 
-    let motdCounter = 0;
+    //Update motd after not focused and 5 seconds of no change pass (to not use entire budget)
     motdInput.addEventListener("focusout", function() {
         let lastValue = motdInput.value;
-        motdCounter++;
-        let lastCounter = motdCounter;
+        pushData.motdCounter++;
+        let lastCounter = pushData.motdCounter;
         setTimeout(function() {
-            if (motdCounter === lastCounter) {
+            if (pushData.motdCounter === lastCounter) {
                 if (lastValue === motdInput.value) {
                     //5 second interval of no change = change database\
                     if (userData.motd === motdInput.value) {
@@ -104,11 +112,27 @@ function onLoad() {
         }, 5 * 1000)
     })
 
+    //Fix scroll when new content added
     mainContentDiv.addEventListener("scroll", function() {
         lastPos = mainContentDiv.scrollTop
         scrollingWithContent = (mainContentDiv.scrollTop) > (mainContentDiv.scrollHeight - mainContentDiv.offsetHeight - 15)
     })
     scrollDown()
+
+    //Add reaction buttons to chooser
+    for (let i = 0; i < reactEmojis.length; i++) {
+        let elem = document.createElement('div')
+        elem.setAttribute('class', 'messageReaction enlargedMessageReaction')
+        const emoji = reactEmojis[i]
+        elem.innerText = emoji
+        elem.onclick = function() {
+            setReactionToMessage(openedMessage, emoji, true)
+            openReactMenu(false)
+        }
+
+        reactMenuContainer.append(elem)
+    }
+
     fixDumbCss()
 }
 
@@ -327,12 +351,13 @@ function updateSelectedChannel(newValue) {
     }
 
     displayData.snapshotDisconnectFunction() //Disconnect previous snapshot if it exists
+    displayData.reactSnapshotDisconnectFunction() //Disconnect previous snapshot if it exists
 
     document.getElementById('displayChannel').innerText = "#" + displayData.selectedChannel
     document.getElementById('displayChannelDesc').innerText = displayData.descriptions[displayData.selectedChannel]
 
-    let channels = db.collection("channels")
-    let messages = channels.doc(displayData.selectedChannel).collection("messages")
+    let channel = db.collection("channels").doc(displayData.selectedChannel)
+    let messages = channel.collection("messages")
 
     let queryBase = messages.orderBy("created", "desc") //most recent message first, then the last x
 
@@ -343,6 +368,7 @@ function updateSelectedChannel(newValue) {
                 redisplayAllMessages()
                 snapshot.forEach(function(doc) {
                     addNewMessage(doc.id, doc.data(), true)
+                    channel.collection("reactions").doc(doc.id).get().then(handleReactionSnapshot)
                 })
             })
     } else {
@@ -357,6 +383,12 @@ function updateSelectedChannel(newValue) {
         }
         snapshot.forEach(function(doc) {
             addNewMessage(doc.id, doc.data())
+        })
+    })
+
+    displayData.reactSnapshotDisconnectFunction = channel.collection("reactions").orderBy("updated", "desc").limit(1).onSnapshot((snapshot) => {
+        snapshot.forEach(function(doc) {
+            handleReactionSnapshot(doc)
         })
     })
 
@@ -433,6 +465,8 @@ function addNewMessage(docId, data, atBeginning) {
         } else {
             messages.splice(0, 0, reformattedData)
         }
+        displayData.reactions[docId] = {}
+        displayData.idToChannel[docId] = displayData.selectedChannel
 
         displayMessage(reformattedData, atBeginning)
     }
@@ -443,6 +477,7 @@ function displayMessage(data, atBeginning) {
 
     let div = document.createElement("div")
     div.setAttribute("class", "message")
+    div.setAttribute("id", "message-" + data.id)
 
     let img = document.createElement("img")
 
@@ -466,12 +501,26 @@ function displayMessage(data, atBeginning) {
     time.setAttribute("class", "messageTimestamp")
     time.innerText = data.fTime;
 
+    let contentDiv = document.createElement("div")
+
     let content = document.createElement("p")
     content.setAttribute("class", "messageContent")
     content.innerText = data.content
 
+    contentDiv.appendChild(content)
+
+    let reactButton = document.createElement('button')
+    reactButton.setAttribute("class", "messageReactionAddButton")
+    reactButton.innerText = "+😎"
+    reactButton.onclick = function() {
+        openReactMenu(data.id)
+    }
+
+    let react = document.createElement("div")
+    react.setAttribute("class", "messageReactionContainer")
+
     headerContainer.append(name, time)
-    right.append(headerContainer, content)
+    right.append(headerContainer, contentDiv, react, reactButton)
     div.append(img, right)
 
     if (!atBeginning) {
@@ -480,7 +529,86 @@ function displayMessage(data, atBeginning) {
         displayMessages.insertBefore(div, displayMessages.firstChild);
     }
 
+    updateMessageReactions(data.id)
     scrollDown()
+}
+
+function createReactionDisplay(id, item, e, n, isSelected) {
+    let elem = document.createElement("div")
+    elem.setAttribute("class", "messageReaction" + (isSelected ? " selectedMessageReaction" : ""))
+
+    let number = document.createElement("p")
+    number.setAttribute("class", "messageReactionNumber")
+    number.innerText = n
+
+    let emoji = document.createElement("p")
+    emoji.setAttribute("class", "messageReactionEmoji")
+    emoji.innerText = e
+
+    elem.onclick = function() {
+        setReactionToMessage(id, e, !isSelected)
+    }
+
+    elem.append(number, emoji)
+    item.appendChild(elem)
+}
+
+function updateMessageReactions(id) {
+    const data = displayData.reactions[id]
+    let div = document.getElementById("message-" + id)
+    if (!div) { return }
+    div = div.querySelector(".messageReactionContainer")
+    div.innerHTML = ""
+    let counts = []
+    let selected = []
+    let hasContent = false;
+    if (data) {
+        for (const uId in data) {
+            const reactions = data[uId].split(",")
+            for (let i = 0; i < reactions.length; i++) {
+                const emoji = reactions[i]
+                if (!counts[emoji]) {
+                    counts[emoji] = 1;
+                } else {
+                    counts[emoji]++;
+                }
+                if (uId === user.uid) {
+                    selected[emoji] = true;
+                }
+            }
+        }
+    }
+
+    for (let i = 0; i < reactEmojis.length; i++) {
+        const item = reactEmojis[i]
+        if (counts[item]) {
+            createReactionDisplay(id, div, item, counts[item], selected[item])
+            hasContent = true;
+        }
+    }
+
+    if (hasContent) {
+        div.style.display = 'block'
+    } else {
+        div.style.display = 'none'
+    }
+
+    scrollDown()
+}
+
+function handleReactionSnapshot(reactSnap) {
+    if (!reactSnap.exists) {
+        return
+    }
+    let copy = {}
+    const data = reactSnap.data()
+    for (const copyKey in data) {
+        if (copyKey !== 'updated') {
+            copy[copyKey] = data[copyKey]
+        }
+    }
+    displayData.reactions[reactSnap.id] = copy
+    updateMessageReactions(reactSnap.id)
 }
 
 function redisplayAllMessages() {
@@ -491,5 +619,60 @@ function redisplayAllMessages() {
         messages.forEach(function(data) {
             displayMessage(data, false)
         })
+    }
+}
+
+function openReactMenu(id) {
+    if (id === false) {
+        reactMenuContainer.parentElement.style.display = "none"
+        return
+    }
+
+    reactMenuContainer.parentElement.style.display = "block"
+    openedMessage = id;
+}
+
+function setReactionToMessage(id, emoji, show) {
+    const uid = user.uid;
+    let currentData = displayData.reactions[id]
+    let dataChanged = false;
+
+    if (!currentData[uid] || currentData[uid] === "") {
+        if (show) {
+            //Add content
+            currentData[uid] = emoji
+            dataChanged = true;
+        }
+    } else {
+        let parsed = currentData[uid].split(",")
+        if (show) {
+            if (!parsed.includes(emoji)) {
+                parsed.push(emoji)
+                dataChanged = true;
+            }
+        } else {
+            if (parsed.includes(emoji)) {
+                let index = parsed.indexOf(emoji)
+                parsed.splice(index, 1)
+                dataChanged = true;
+            }
+        }
+        currentData[uid] = parsed.join(",")
+    }
+
+    if (dataChanged) {
+        updateMessageReactions(id)
+
+        pushData[id] = currentData[uid]
+        const lastCheck = currentData[uid]
+        //Add delay for writing data in order to prevent high write speeds from spam clicking
+        setTimeout(function() {
+            if (pushData[id] === lastCheck) {
+                db.collection("channels").doc(displayData.idToChannel[id]).collection("reactions").doc(id).set({
+                    [uid]: lastCheck,
+                    updated: firebase.firestore.FieldValue.serverTimestamp(),
+                }, { merge: true })
+            }
+        }, 5 * 1000)
     }
 }
